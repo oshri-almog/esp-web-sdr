@@ -98,7 +98,8 @@ function measBar(c){
  // Hann window: 3 dB bandwidth 1.44 bins
  const rbw=1.44*c.rate/n,top=Number($('floor').value)+Number($('range').value),div=Number($('range').value)/4;
  const det=spec?($('specDetector').value==='max'?'max-hold':'average'):'average';
- const wifi=globalThis.espWebSdrWifiChannels?.describe(c.frequency,(center-span/2)/1e6,(center+span/2)/1e6)||'—';
+ // Name the channel the user tuned to; with offset LO the receiver center is shifted.
+ const wifi=globalThis.espWebSdrWifiChannels?.describe(tuneFrequency,(center-span/2)/1e6,(center+span/2)/1e6)||'—';
  const acq=spec?(specLast?`${(specLast.pairs/c.rate*1e3).toFixed(2)} ms · ${specLast.ffts} FFT · ${radio.spectrumContinuous(Number($('rate').value),Number($('fft').value))?'continuous capture':'snapshot'}`:'—')
   :(latest?.samples?`${(latest.samples/c.rate*1e3).toFixed(3)} ms burst`:'—');
  const item=(k,v)=>`<span>${k} <b style="color:#e8eef0;font-weight:600">${v}</b></span>`;

@@ -29,3 +29,19 @@ test('annotates exact centres and otherwise summarizes channels in the displayed
 test('does not treat nearby non-centre frequencies as a Wi-Fi channel',()=>{
  assert.equal(wifi.channelAt(2412.1),null);
 });
+
+test('the measurement bar names the tuned channel when the LO is offset',async()=>{
+ const app=await readFile(path.resolve('app.js'),'utf8');
+ const slice=(start,end)=>app.slice(app.indexOf(start),app.indexOf(end,app.indexOf(start)));
+ const meas={innerHTML:''},inputs={floor:{value:'-100'},range:{value:'80'},specDetector:{value:'mean'}};
+ const context=vm.createContext({globalThis:{espWebSdrWifiChannels:wifi},$:id=>id==='meas'?meas:inputs[id],
+  connected:false,spectrumMode:false,latest:null,specLast:null,tuneFrequency:2412});
+ vm.runInContext(slice('function fmtHz(','\n')+'\n'+slice('function measBar(','\nfunction labels('),context);
+ const label=()=>/Wi-Fi CH <b[^>]*>([^<]*)<\/b>/.exec(meas.innerHTML)[1];
+ for(const lo of [2407,2412,2417]){
+  vm.runInContext(`measBar({frequency:${lo},rate:80000000,fft:2048})`,context);
+  assert.equal(label(),'CH 1 · 2.4 GHz');
+ }
+ context.tuneFrequency=2410;vm.runInContext('measBar({frequency:2410,rate:20000000,fft:2048})',context);
+ assert.equal(label(),'CH 1, 2 · 2.4 GHz');
+});
