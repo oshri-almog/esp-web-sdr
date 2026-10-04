@@ -87,7 +87,7 @@ async function api(path,body){let value;
 }
 function error(e,communication=false){
  const box=$('error');box.textContent=e?.message||e;box.hidden=!e;
- if(e&&communication){const link=document.createElement('a');link.href='/flash.html';link.textContent='Install / update ESP-SDR firmware';box.append(' ',link);}
+ if(e&&communication){const link=document.createElement('a');link.href='flash.html';link.textContent='Install / update ESP-SDR firmware';box.append(' ',link);}
 }
 function config(){return {frequency:loFrequency(),rate:Number($('rate').value),bits:Number($('bits').value),fft:Number($('fft').value),bandwidth:analogBandwidth,gainMode:$('gainMode').value,gain:Number($('gain').value),trigger:{mode:'free'}};}
 function clear(){trace=null;maximum=null;waterHist=[];if(!keepView)view={a:0,b:1};keepView=false;wc.fillStyle='#11191e';wc.fillRect(0,0,water.width,water.height);draw();}
