@@ -5,7 +5,8 @@ import {readFile} from 'node:fs/promises';
 const source=await readFile(new URL('../app.js',import.meta.url),'utf8');
 test('remembered USB identities never silently select between identical boards',async()=>{
  const port=()=>({getInfo:()=>({usbVendorId:0x303a,usbProductId:0x1001})}),a=port(),b=port();let ports=[a],picks=0;
- const ctx=vm.createContext({localStorage:{getItem:()=>JSON.stringify({vid:0x303a,pid:0x1001})},navigator:{serial:{getPorts:async()=>ports,requestPort:async()=>{picks++;return b;}}}});
+ const serial={getPorts:async()=>ports,requestPort:async()=>{picks++;return b;}};
+ const ctx=vm.createContext({localStorage:{getItem:()=>JSON.stringify({vid:0x303a,pid:0x1001})},serialApi:()=>serial});
  vm.runInContext(source.slice(source.indexOf("const PORT_KEY="),source.indexOf("$('connect').title=")),ctx);
  const choose=vm.runInContext('choosePort',ctx);
  assert.equal(await choose({auto:true}),a);assert.equal(picks,0);

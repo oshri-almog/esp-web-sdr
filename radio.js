@@ -82,9 +82,13 @@ class BurstSerialRadio {
   throw failure;
  }
  async connect({baudRate=2000000,port=null}={}){
-  if(!navigator.serial)throw Error('WebSerial support is required in this browser.');
   if(!isSecureContext)throw Error('Serve this page over HTTPS or localhost.');
-  if(!port)port=await navigator.serial.requestPort();
+  if(!port){
+   // usb-serial.js selects WebUSB on Android; plain Web Serial otherwise.
+   const serial=typeof serialApi==='function'?serialApi():navigator.serial;
+   if(!serial)throw Error('This browser cannot open USB serial devices. Use Chrome or Edge on a computer, or Chrome on Android.');
+   port=await serial.requestPort();
+  }
   return this.run(async()=>{
    await this.close();
    try{await this.connectPort(port,baudRate);return await this.negotiate();}

@@ -32,7 +32,7 @@ class SDRLoader extends ESPLoader {
 }
 const log=text=>{$('log').textContent+=text;$('log').scrollTop=$('log').scrollHeight;};
 function status(text,error=false){$('status').textContent=text;$('status').dataset.error=String(error);}
-function buttons(){const variant=firmware?.variants[$('revision').value];$('s3-bridge-hint').hidden=variant?.target!=='esp32s3';const soapy=variant?.application==='soapysdr';$('open-application').href=soapy?'https://github.com/ESPARGOS/SoapyESPSDR':'index.html';$('open-application').textContent=soapy?'Set up SoapyESPSDR →':'Open ESP-WebSDR →';const supported=!!navigator.serial&&isSecureContext;$('connect').disabled=!firmware||!$('revision').value||busy||!!transport||!supported;$('revision').disabled=!firmware||busy||!!transport;$('install').disabled=busy||!loader||!$('revision').value;$('disconnect').disabled=busy||!transport;}
+function buttons(){const variant=firmware?.variants[$('revision').value];$('s3-bridge-hint').hidden=variant?.target!=='esp32s3';const soapy=variant?.application==='soapysdr';$('open-application').href=soapy?'https://github.com/ESPARGOS/SoapyESPSDR':'index.html';$('open-application').textContent=soapy?'Set up SoapyESPSDR →':'Open ESP-WebSDR →';const supported=!!serialApi()&&isSecureContext;$('connect').disabled=!firmware||!$('revision').value||busy||!!transport||!supported;$('revision').disabled=!firmware||busy||!!transport;$('install').disabled=busy||!loader||!$('revision').value;$('disconnect').disabled=busy||!transport;}
 function beforeUnload(e){if(busy){e.preventDefault();e.returnValue='';}}
 window.addEventListener('beforeunload',beforeUnload);
 async function disconnect(){loader=null;detectedFlashSize=null;if(transport){const t=transport;transport=null;await t.disconnect();}$('device').textContent='Not connected';}
@@ -41,7 +41,7 @@ $('connect').onclick=async()=>{
  busy=true;buttons();$('log').textContent='';status('Select your ESP32 device.');
  try{
   const uartBaud=flashingBaudRate(selectedFirmware());
-  const port=await navigator.serial.requestPort();
+  const port=await serialApi().requestPort();
   const uart=port.getInfo().usbVendorId!==0x303a;
   transport=new Transport(port,false);
   const candidate=new SDRLoader({transport,baudrate:uart?uartBaud:115200,terminal:{clean(){},write:log,writeLine:s=>log(s+'\n')}});
@@ -101,7 +101,7 @@ async function initialize(){
   if(unavailable.length){const note=document.createElement('p');note.className='muted';note.textContent=unavailable.map(v=>v.chip).join(', ')+': firmware is available, but the bundled browser flasher does not support this chip yet. Use ESP-IDF/esptool with the firmware artifact.';$('revision').after(note);}
   const requestedBoard=new URLSearchParams(location.search).get('board');
   if(requestedBoard&&firmware.variants[requestedBoard]?.browser_supported){$('revision').value=requestedBoard;$('version').textContent=firmwareDate(firmware.variants[requestedBoard]);}
-  status(navigator.serial&&isSecureContext?($('revision').value?applicationGuidance(firmware.variants[$('revision').value]):'Choose a firmware profile, then connect your board.'):'This browser needs WebSerial support. Serve this page over HTTPS or localhost.',!(navigator.serial&&isSecureContext));
+  status(serialApi()&&isSecureContext?($('revision').value?applicationGuidance(firmware.variants[$('revision').value]):'Choose a firmware profile, then connect your board.'):'This browser needs Web Serial or WebUSB support (Chrome or Edge on a computer, or Chrome on Android). Serve this page over HTTPS or localhost.',!(serialApi()&&isSecureContext));
  }catch(e){firmware=null;status(`Cannot load firmware: ${e.message} Check that the firmware folder is deployed alongside this website.`,true);}
  buttons();
 }

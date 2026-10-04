@@ -216,11 +216,11 @@ const PORT_KEY='espSdrPort';
 function savedPort(){try{return JSON.parse(localStorage.getItem(PORT_KEY)||'null');}catch(e){return null;}}
 function rememberPort(p){try{const i=p.getInfo?.()||{};if(i.usbVendorId)localStorage.setItem(PORT_KEY,JSON.stringify({vid:i.usbVendorId,pid:i.usbProductId}));}catch(e){}}
 async function choosePort(ev){
- if(!navigator.serial)throw Error('WebSerial support is required in this browser.');
- if(!ev?.choosePort){const saved=savedPort(),ports=await navigator.serial.getPorts();
+ const serial=serialApi();if(!serial)throw Error('This browser cannot open USB serial devices. Use Chrome or Edge on a computer, or Chrome on Android.');
+ if(!ev?.choosePort){const saved=savedPort(),ports=await serial.getPorts();
   const matches=saved?ports.filter(p=>{const i=p.getInfo?.()||{};return i.usbVendorId===saved.vid&&i.usbProductId===saved.pid;}):[];
   if(matches.length===1)return matches[0];if(ev?.auto)return null;}
- return navigator.serial.requestPort();
+ return serial.requestPort();
 }
 $('connect').title='Connect to the remembered port';
 function closeConnectMenu(focus=false){$('connectMenu').hidden=true;$('choosePort').setAttribute('aria-expanded','false');if(focus)$('choosePort').focus();}
@@ -367,5 +367,5 @@ $('autoscale').onchange=()=>{autoT=0;autoPk=null;};
 
 // Start without a click: connect to the remembered port as soon as the page
 // loads and whenever a device is plugged in (only ports this site was granted).
-if(navigator.serial){navigator.serial.addEventListener?.('connect',()=>setTimeout(()=>$('connect').onclick({auto:true}),500));
+if(serialApi()){serialApi().addEventListener?.('connect',()=>setTimeout(()=>$('connect').onclick({auto:true}),500));
  setTimeout(()=>$('connect').onclick({auto:true}),300);}

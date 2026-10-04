@@ -18,7 +18,9 @@ While we put a lot of manual effort into [pyespargos](https://github.com/ESPARGO
 
 ## Get started
 
-1. Use a browser with Web Serial support and connect your board over USB.
+1. Use a browser with Web Serial support (Chrome or Edge on a computer) or
+   Chrome on Android, and connect your board over USB. On Android, use a USB OTG
+   cable or adapter; the pages talk to the board through WebUSB there.
 2. Install the matching firmware with the [firmware installer](https://espargos.net/espsdr/app/flash.html).
 3. Open the [viewer](https://espargos.net/espsdr/app/), connect to the board, and select a frequency.
 
@@ -34,6 +36,13 @@ bridges, use **Switch to 1 Mbaud** when the viewer reports transfer errors.
 C2 analog bandwidth covers approximately 12–20 MHz; zero selects the open
 capacitor setting. Controls are negotiated, so older C2 images retain their
 80 MS/s-only capability and disabled bandwidth control.
+
+On Android, ESP-WebSDR includes WebUSB drivers for native USB Serial/JTAG and
+other CDC-ACM devices (including CH9102/CH343), CP210x, CH340/CH341 and FTDI
+bridges. On dual-channel FTDI bridges such as ESP-Prog, it uses channel B, the
+UART. Prolific PL2303 bridges are not supported on Android. See
+[docs/android-support.md](docs/android-support.md) for how it works and how to
+test it from a phone.
 
 Close other programs using the serial port. If automatic bootloader entry fails,
 hold BOOT, tap RESET, then release BOOT and reconnect in the installer.
